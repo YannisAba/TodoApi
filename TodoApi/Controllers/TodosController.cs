@@ -9,7 +9,8 @@ using TodoApi.Models;
 
 namespace TodoApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
+    /*[Route("api/[controller]")]*/
     [ApiController]
     public class TodosController : ControllerBase
     {
@@ -20,16 +21,15 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
-        // GET: api/Todos
-        [HttpGet]
+        // GET: api/todos
+        [HttpGet("todos")]
         public async Task<ActionResult<IEnumerable<Todo>>> GetTodos()
         {
-            /*return await _context.Todos.ToListAsync();*/
             return await _context.Todos.Include(t => t.TodoItems).ToListAsync();
         }
 
-        // GET: api/Todos/5
-        [HttpGet("{id}")]
+        // GET: api/todos/:id
+        [HttpGet("todos/:id")]
         public async Task<ActionResult<Todo>> GetTodo(int id)
         {
             var todo = await _context.Todos.FindAsync(id);
@@ -42,37 +42,8 @@ namespace TodoApi.Controllers
             return todo;
         }
 
-        // PUT: api/Todos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        /*[HttpPut("{id}")]
-        public async Task<IActionResult> PutTodo(int id, Todo todo)
-        {
-            if (id != todo.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(todo).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TodoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }*/
-        [HttpPut("{id}")]
+        // PUT: api/todos/:id
+        [HttpPut("todos/:id")]
         public async Task<IActionResult> PutTodo(int id, ToDoHelperClassPutMethod toDoHelperClass)
         {
             if (id != toDoHelperClass.Id)
@@ -89,7 +60,6 @@ namespace TodoApi.Controllers
                 Id = toDoHelperClass.Id,
                 Name = toDoHelperClass.Name,
                 UserId = toDoHelperClass.UserId
-                /*User = user*/
             };
 
             _context.Entry(todo).State = EntityState.Modified;
@@ -113,9 +83,8 @@ namespace TodoApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Todos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
+        // POST: api/todos
+        [HttpPost("todos")]
         public async Task<ActionResult<Todo>> PostTodo(ToDoHelperClass toDoHelperClass)
         {
             if (!ModelState.IsValid)
@@ -142,19 +111,12 @@ namespace TodoApi.Controllers
                 return CreatedAtAction(nameof(GetTodo), new { id = todo.Id }, todo);
             }
             return BadRequest(ModelState);
-
-
-            /*_context.Todos.Add(todo);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetTodo", new { id = todo.Id }, todo);*/
         }
 
-        // DELETE: api/Todos/5
-        [HttpDelete("{id}")]
+        // DELETE: api/todos/:id
+        [HttpDelete("todos/:id")]
         public async Task<IActionResult> DeleteTodo(int id)
         {
-            /*var todo = await _context.Todos.FindAsync(id);*/
             var todo = await _context.Todos.Include(t => t.TodoItems).FirstOrDefaultAsync(t => t.Id == id);
             if (todo == null)
             {
