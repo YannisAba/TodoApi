@@ -28,11 +28,15 @@ namespace TodoApi.Controllers
             return await _context.Todos.Include(t => t.TodoItems).ToListAsync();
         }
 
-        // GET: api/todos/:id
-        [HttpGet("todos/:id")]
+        // GET: api/todos/{id}
+        [HttpGet("todos/{id:int}")]
         public async Task<ActionResult<Todo>> GetTodo(int id)
         {
-            var todo = await _context.Todos.FindAsync(id);
+            /*var todo = await _context.Todos.FindAsync(id);*/
+
+            var todo = await _context.Todos
+                .Include(t => t.TodoItems)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (todo == null)
             {
@@ -42,14 +46,10 @@ namespace TodoApi.Controllers
             return todo;
         }
 
-        // PUT: api/todos/:id
-        [HttpPut("todos/:id")]
-        public async Task<IActionResult> PutTodo(int id, ToDoHelperClassPutMethod toDoHelperClass)
+        // PUT: api/todos/{id}
+        [HttpPut("todos/{id:int}")]
+        public async Task<IActionResult> PutTodo(int id, ToDoHelperClass toDoHelperClass)
         {
-            if (id != toDoHelperClass.Id)
-            {
-                return BadRequest();
-            }
             var user = await _context.Users.FindAsync(toDoHelperClass.UserId);
             if (user == null)
             {
@@ -57,7 +57,7 @@ namespace TodoApi.Controllers
             }
             var todo = new Todo
             {
-                Id = toDoHelperClass.Id,
+                Id = id,
                 Name = toDoHelperClass.Name,
                 UserId = toDoHelperClass.UserId
             };
@@ -113,8 +113,8 @@ namespace TodoApi.Controllers
             return BadRequest(ModelState);
         }
 
-        // DELETE: api/todos/:id
-        [HttpDelete("todos/:id")]
+        // DELETE: api/todos/{id}
+        [HttpDelete("todos/{id:int}")]
         public async Task<IActionResult> DeleteTodo(int id)
         {
             var todo = await _context.Todos.Include(t => t.TodoItems).FirstOrDefaultAsync(t => t.Id == id);

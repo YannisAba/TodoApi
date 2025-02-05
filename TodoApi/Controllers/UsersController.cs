@@ -21,8 +21,8 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
-        // GET: api/auth/:id
-        [HttpGet("auth/:id")]
+        // GET: api/auth/{id}
+        [HttpGet("auth/{id:int}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);

@@ -21,12 +21,10 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
-        // GET: api/todos/:id/items/:iid
-        [HttpGet("todos/:id/items/:iid")]
+        // GET: api/todos/{id}/items/{iid}
+        [HttpGet("todos/{id:int}/items/{iid:int}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(int id, int iid)
         {
-            /*var todoItem = await _context.TodoItems.FindAsync(id);*/
-
             var todoItem = await _context.TodoItems.Include(t => t.Todo)
             .FirstOrDefaultAsync(i => i.TodoId == id && i.Id == iid);
 
@@ -38,14 +36,17 @@ namespace TodoApi.Controllers
             return todoItem;
         }
 
-        // PUT: api/todos/:id/items/:iid
-        [HttpPut("todos/:id/items/:iid")]
-        public async Task<IActionResult> PutTodoItem(int iid, TodoItem todoItem)
+        // PUT: api/todos/{id}/items/{iid}
+        [HttpPut("todos/{id:int}/items/{iid:int}")]
+        public async Task<IActionResult> PutTodoItem(int id, int iid, ToDoItemHelperClass toDoItemHelperClass)
         {
-            if (iid != todoItem.Id)
+            var todoItem = new TodoItem
             {
-                return BadRequest();
-            }
+                Id = iid,
+                Name = toDoItemHelperClass.Name,
+                IsComplete = toDoItemHelperClass.IsComplete,
+                TodoId = id
+            };
 
             _context.Entry(todoItem).State = EntityState.Modified;
 
@@ -55,7 +56,7 @@ namespace TodoApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TodoItemExists(iid))
+                if (!TodoItemExists(iid) || !_context.Todos.Any(t => t.Id == id))
                 {
                     return NotFound();
                 }
@@ -64,13 +65,13 @@ namespace TodoApi.Controllers
                     throw;
                 }
             }
-
             return NoContent();
+
         }
 
-        // POST: api/todos/:id/items
-        [HttpPost("todos/:id/items")]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(ToDoItemHelperClass toDoItemHelperClass)
+        // POST: api/todos/{id}/items
+        [HttpPost("todos/{id:int}/items")]
+        public async Task<ActionResult<TodoItem>> PostTodoItem(int id, ToDoItemHelperClass toDoItemHelperClass)
         {
             if (!ModelState.IsValid)
             {
@@ -78,28 +79,34 @@ namespace TodoApi.Controllers
             }
 
 
-            var todo = await _context.Todos.FindAsync(toDoItemHelperClass.TodoId);
+            var todo = await _context.Todos.FindAsync(id);
             if (todo == null)
             {
-                return BadRequest("Invalid UserId: User not found.");
+                return BadRequest("Invalid id: Todo not found.");
             }
             var todoItem = new TodoItem
             {
                 Name = toDoItemHelperClass.Name,
                 IsComplete = toDoItemHelperClass.IsComplete,
-                TodoId = toDoItemHelperClass.TodoId,
+                TodoId = id,
                 Todo = todo
             };
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+            return CreatedAtAction("GetTodoItem", new { id = id, iid = todoItem.Id }, todoItem);
         }
 
-        // DELETE: api/todos/:id/items/:iid
-        [HttpDelete("todos/:id/items/:iid")]
-        public async Task<IActionResult> DeleteTodoItem(int iid)
+        // DELETE: api/todos/{id}/items/{iid}
+        [HttpDelete("todos/{id:int}/items/{iid:int}")]
+        public async Task<IActionResult> DeleteTodoItem(int id, int iid)
         {
+            var todo = await _context.Todos.FindAsync(id);
+            if (todo == null)
+            {
+                return NotFound();
+            }
+
             var todoItem = await _context.TodoItems.FindAsync(iid);
             if (todoItem == null)
             {

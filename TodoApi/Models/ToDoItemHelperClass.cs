@@ -9,7 +9,5 @@ namespace TodoApi.Models
 
         public bool IsComplete { get; set; }
 
-        public int TodoId { get; set; }
-
     }
 }
