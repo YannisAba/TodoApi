@@ -80,7 +80,7 @@ namespace TodoApi.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/todos
@@ -132,7 +132,7 @@ namespace TodoApi.Controllers
             _context.Todos.Remove(todo);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
         }
 
         private bool TodoExists(int id)
